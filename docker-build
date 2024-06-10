@@ -1,5 +1,7 @@
 #!/bin/bash
-docker build -t reifan49/uxplay-build:1.0 . || exit $?
+IMAGE_VERSION=1.0
+
+docker build -t reifan49/uxplay-build:${IMAGE_VERSION} . || exit $?
 
 if which getent >/dev/null; then
   _maintainer_name=$(getent passwd $USER | cut -d: -f5 | cut -d, -f1)
@@ -68,4 +70,4 @@ set -x
 docker run --rm \
   -v "$(dirname $0)/build:/build/out" \
   "${_options[@]}" \
-  reifan49/uxplay-build:1.0
+  reifan49/uxplay-build:${IMAGE_VERSION}
