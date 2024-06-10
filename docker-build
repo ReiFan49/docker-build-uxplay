@@ -1,0 +1,51 @@
+#!/bin/bash
+docker build -t reifan49/uxplay-build:1.0 . || exit $?
+
+if which getent >/dev/null; then
+  _maintainer_name=$(getent passwd $USER | cut -d: -f5 | cut -d, -f1)
+  _maintainer_email=$(getent passwd $USER | cut -d: -f5 | cut -d, -f4)
+fi
+
+if which git >/dev/null; then
+  [ -z "${_maintainer_name}" ] && \
+    _maintainer_name=$(git config user.name)
+  [ -z "${_maintainer_email}" ] && \
+    _maintainer_email=$(git config user.email)
+fi
+
+[ -z "${_maintainer_email}" ] && \
+  _maintainer_email="${USER}@$(hostname)"
+
+_maintainer_string="${_maintainer_name} <${_maintainer_email}>"
+_options=()
+
+_def_repository=https://github.com/FDH2/UxPlay
+_def_branch=v1.68.3
+_def_name=uxplay
+_def_maintainer_version=rf49
+_def_maintainer_revision=
+_def_description=
+_def_section=net
+_def_priority=optional
+
+_options+=("-e" "REPOSITORY=${_def_repository}")
+_options+=("-e" "BRANCH=${_def_branch}")
+[ -n ${_def_name} ] && \
+  _options+=("-e" "PKG_NAME=${_def_name}")
+_options+=("-e" "PKG_MAINTAINER=${_maintainer_string}")
+[ -n ${_def_maintainer_version} ] && \
+  _options+=("-e" "PKG_MAINTAINER_VERSION=${_def_maintainer_version}")
+[ -n ${_def_maintainer_revision} ] && \
+  _options+=("-e" "PKG_REVISION_NUMBER=${_def_maintainer_revision}")
+[ -n ${_def_section} ] && \
+  _options+=("-e" "PKG_SECTION=${_def_section}")
+[ -n ${_def_priority} ] && \
+  _options+=("-e" "PKG_PRIORITY=${_def_priority}")
+[ -n ${_def_description} ] && \
+  _options+=("-e" "PKG_DESCRIPTION=${_def_description}")
+
+set -x
+docker run --rm \
+  -v "$(dirname $0)/build:/build/out" \
+  "${_options[@]}" \
+  reifan49/uxplay-build:1.0
