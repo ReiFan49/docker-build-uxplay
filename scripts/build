@@ -25,7 +25,28 @@ pushd /build >/dev/null
       sed 's|"||g' \
       > /build/APP_VERSION
   fi
-  echo $(cat /build/APP_VERSION)+${PKG_MAINTAINER_VERSION:=rf49}-${PKG_REVISION_NUMBER:-1} > /build/PKG_VERSION
+
+  base_ver="$(cat /build/APP_VERSION)+${PKG_MAINTAINER_VERSION}"
+  arch_str=$(dpkg-architecture -q DEB_HOST_ARCH)
+  file_prefix="${PKG_NAME}_${base_ver}"
+  file_suffix="${arch_str}.deb"
+  base_name="${file_prefix}-*_${file_suffix}"
+  revision_value=0
+  echo "PREF:" ${file_prefix}
+  echo "SUFF:" ${file_suffix}
+
+  for fn in out/${base_name}; do
+    file_revision_value=$(
+      basename $fn |
+      sed "s|^${file_prefix}-||g; s|_${file_suffix}$||g"
+    )
+    [[ "${file_revision_value}" -gt "${revision_value}" ]] &&
+      revision_value=${file_revision_value}
+  done
+  unset fn
+  revision_value=$((revision_value + 1))
+
+  echo $(cat /build/APP_VERSION)+${PKG_MAINTAINER_VERSION}-${PKG_REVISION_NUMBER:-${revision_value}} > /build/PKG_VERSION
 popd         >/dev/null
 
 pushd /build/app >/dev/null
