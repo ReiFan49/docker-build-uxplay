@@ -28,6 +28,26 @@ _def_description=
 _def_section=net
 _def_priority=optional
 
+check_latest_tag() {
+  which curl >/dev/null || return 1
+  [[ "${_def_repository}" =~ ^https://github.com/ ]] || return 1
+  repo_key=$(echo "${_def_repository}" | sed 's|https://github.com/||')
+  online_versions=$(curl -s "https://api.github.com/repos/${repo_key}/tags?per_page=100")
+  valid_versions=$(echo "${online_versions}" | jq '
+      map(.name) |
+      map(select(
+        test("v[1-9][0-9]*.(0|[1-9][0-9]*).(0|[1-9][0-9]*)")
+      )) |
+      .[]
+    ' |
+    sort -Vr |
+    sed -E 's|"||g'
+  )
+  _def_branch=$(echo "${valid_versions}" | head -n 1)
+}
+
+check_latest_tag || echo "ignoring latest tag check. using ${_def_branch} branch."
+
 _options+=("-e" "REPOSITORY=${_def_repository}")
 _options+=("-e" "BRANCH=${_def_branch}")
 [ -n ${_def_name} ] && \
