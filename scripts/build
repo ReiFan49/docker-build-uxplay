@@ -39,15 +39,16 @@ pushd /build/app >/dev/null
   echo "Maintainer: " "${PKG_MAINTAINER}"                   >> control
   echo "Depends: " \
     $(cat /build/dependencies/INSTALL)                      >> control
-  echo "Section: " ${PKG_SECTION:-net}                      >> control
-  echo "Priority: " ${PKG_PRIORITY:-optional}               >> control
+  [ -n "${PKG_SECTION}" ] && \
+    echo "Section: " ${PKG_SECTION}                         >> control
+  [ -n "${PKG_PRIORITY}" ] && \
+    echo "Priority: " ${PKG_PRIORITY}                       >> control
   echo "Homepage: " "${REPOSITORY}"                         >> control
   echo "Description: " \
-    "${PKG_DESCRIPTION:-No description provided.}"        >> control
+    "${PKG_DESCRIPTION:-No description provided.}"          >> control
 popd             >/dev/null
 
 pushd /build >/dev/null
-  
   dpkg-deb --root-owner-group --build app \
     out/"${PKG_NAME}_$(cat /build/PKG_VERSION)_$(dpkg-architecture -q DEB_HOST_ARCH).deb"
 popd         >/dev/null
