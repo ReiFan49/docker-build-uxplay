@@ -2,8 +2,7 @@
 set -e
 
 mkdir -p /build/app/usr
-USE_X11=${USE_X11:+1}
-[ -n "${USE_X11}" ] && \
+[ -n "${USE_X11:+1}" ] && \
   apt install -y libx11-dev && \
   echo ", libx11-6" >> /build/dependencies/INSTALLwhi
 
@@ -32,8 +31,6 @@ pushd /build >/dev/null
   file_suffix="${arch_str}.deb"
   base_name="${file_prefix}-*_${file_suffix}"
   revision_value=0
-  echo "PREF:" ${file_prefix}
-  echo "SUFF:" ${file_suffix}
 
   for fn in out/${base_name}; do
     file_revision_value=$(
